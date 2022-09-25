@@ -13,15 +13,13 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///<your database>.sqlite")
-
-# reflect an existing database into a new model
+engine = create_engine("sqlite:///surfsup/Resources/hawaii.sqlite")
 Base = automap_base()
-# reflect the tables
 Base.prepare(engine, reflect=True)
 
 # Save references to each table
-######  There are 2 tables in the db
+Measurement = Base.classes.measurement
+Station = Base.classes.station
 
 # Create our session (link) from Python to the DB
 session = Session(engine)
@@ -38,46 +36,48 @@ app = Flask(__name__)
 ###### Everything you need here can be found in Day 3 Activity 10
 @app.route("/")
 def welcome():
-    return (
-
-    )
+    return (f"Available routes<br/>"
+            f"/api/v1.0/precipitation<br/>"
+            f"/api/v1.0/stations<br/>"
+            f"/api/v1.0/tobs<br/>"
+            f"/api/v1.0/start<br/>"
+            f"/api/v1.0/startdate/enddate<br/><br/><br/>"
+            f"Start and end date should be formatted as 'yyyy-mm-dd'")
 
 ###### the 'precipitation' route you will query and return the data Day 3 Activity 10
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    """Return the precipitation data for the last year"""
-    # Calculate the date 1 year ago from last date in database
-
-    # Query for the date and precipitation for the last year
-
-    # Dict with date as the key and prcp as the value
- 
+    session = Session(engine)
+    prcp_data = session.query(Measurement.date, Measurement.prcp).all()
+    dict_prcp = dict(prcp_data)
+    session.close()
+    return jsonify(dict_prcp)
 
 ###### the 'stations' route you will query and return the data Day 3 Activity 10
 @app.route("/api/v1.0/stations")
 def stations():
-    """Return a list of stations."""
-
-    # Unravel results into a 1D array and convert to a list
-
+    session = Session(engine)
+    station_data = session.query(Station.station, Station.name).all()
+    station_data = dict(station_data)
+    session.close()
+    return jsonify(station_data)
 
 ###### the 'tobs' route you will query and return the data Day 3 Activity 10
 @app.route("/api/v1.0/tobs")
 def temp_monthly():
-    """Return the temperature observations (tobs) for previous year."""
-    # Calculate the date 1 year ago from last date in database
-
-
-    # Query the primary station for all tobs from the last year
-
-    # Unravel results into a 1D array and convert to a list
-
-
-    # Return the results
+    session = Session(engine)
+    temperature = session.query(Measurement.date, Measurement.tobs).filter(Measurement.date>="2016-08-23").filter(Measurement.date<="2017-08-23").all()
+    temp_dict = list(np.ravel(temperature))
+    session.close()
+    return jsonify(temp_dict)
 
 
 ###### the 'temp' route you will query the data with params in the url and return the data Day 3 Activity 10
 @app.route("/api/v1.0/temp/<start>")
+def start_date():
+    session = Session(engine)
+    temp_start=session.query()
+
 @app.route("/api/v1.0/temp/<start>/<end>")
 def stats(start=None, end=None):
     """Return TMIN, TAVG, TMAX."""
